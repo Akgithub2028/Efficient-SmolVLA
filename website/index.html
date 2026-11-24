@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>The cost of a replan · Efficient SmolVLA</title>
+    <title>Efficient SmolVLA · Interactive study</title>
     <meta
       name="description"
       content="An interactive study of SmolVLA replanning on a Tesla T4, with paired LIBERO-Spatial simulation results, GPU profiles and recorded rollouts."
@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="data.js"></script>
     <script defer src="site.js"></script>
+    <script defer src="lab.js"></script>
   </head>
   <body>
     <a class="skip" href="#study">Skip to study</a>
@@ -29,89 +30,156 @@
         SmolVLA</a
       >
       <nav aria-label="Study sections">
-        <a href="#mechanism">Mechanism</a><a href="#evidence">Results</a>
-        <a href="#recordings">Rollouts</a><a href="#resources">Resources</a>
+        <a href="#demo">Demo</a><a href="#mechanism">Mechanism</a
+        ><a href="#evidence">Benchmarks</a>
       </nav>
-      <a
-        class="repo icon-link"
-        href="https://github.com/Akgithub2028/Efficient-SmolVLA"
-      >
-        <img src="media/github.svg" alt="" width="20" height="20" />GitHub
-      </a>
+      <div class="source-nav">
+        <a class="source-button" href="assets/report.pdf"
+          ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M13 3H5v18h14V9zm0 0v6h6M8 13h8m-8 4h6" /></svg
+          >Paper</a
+        >
+        <a
+          class="source-button"
+          href="https://github.com/Akgithub2028/Efficient-SmolVLA"
+          ><img src="media/github.svg" alt="" width="19" height="19" />GitHub</a
+        >
+      </div>
     </header>
     <main id="study" tabindex="-1">
       <section class="opening wrap">
         <div class="lead">
-          <h1>A faster way <br />to <em>replan.</em></h1>
+          <h1>SmolVLA <em>in motion.</em></h1>
           <p class="dek">
-            How much computation does a robot need before its next move?
+            How fast can a robot rethink its next move?
           </p>
-          <p class="context">
-            On a Tesla T4, three-step FP16 eager cut median in-loop replan
-            time from 862 to 275 ms. It succeeded in 78.4% of 500 matched
-            simulation episodes, compared with 75.4% for the released policy.
-          </p>
-          <div class="actions">
-            <a class="button primary" href="assets/report.pdf"
-              ><svg class="icon" aria-hidden="true" viewBox="0 0 24 24">
-                <path d="M13 3H5v18h14V9zm0 0v6h6M8 13h8m-8 4h6" /></svg
-              >Read the paper</a
-            >
-            <a
-              class="button secondary"
-              href="https://github.com/Akgithub2028/Efficient-SmolVLA"
-              ><img src="media/github.svg" alt="" width="20" height="20" />View
-              code</a
-            >
-          </div>
-          <div class="byline">
-            Aayaann Kausar <span>·</span> Tesla T4 <span>·</span> LIBERO-Spatial
-          </div>
         </div>
-        <figure class="plate">
-          <div class="platehead">
-            <span><i aria-hidden="true"></i>Recorded simulation</span
-            ><span>Task 0 / State 0</span>
+        <div class="opening-summary">
+          <p>
+            We cut median replan time from <strong>862 to 275 ms</strong> on a
+            Tesla T4. The three-step FP16 policy met the success criterion
+            across 500 matched simulation episodes.
+          </p>
+          <div class="byline">Aayaann Kausar <span>·</span> LIBERO-Spatial</div>
+        </div>
+      </section>
+      <section id="demo" class="wrap demo" aria-labelledby="demo-title">
+        <figure class="lab" id="rollout">
+          <div class="lab-top">
+            <h2 id="demo-title">Run the comparison</h2>
+            <span class="dataset-label">Recorded simulation</span>
           </div>
-          <div class="screen">
-            <video
-              id="hero-video"
-              controls
-              playsinline
-              preload="metadata"
-              width="192"
-              height="192"
-              poster="media/approach.webp"
-              aria-label="Successful bowl placement in the recorded three-step FP16 simulation"
-              src="assets/three-step.mp4"
-            ></video>
-          </div>
-          <div class="film">
-            <img
-              class="strip"
-              width="582"
-              height="192"
-              src="media/hero.webp"
-              alt="The gripper approaches the table, reaches the bowl and carries it to the plate."
-            />
-            <div
-              class="frames js"
-              role="group"
-              aria-label="Jump to a frame in the recording"
-            >
-              <button data-frame="0" aria-pressed="true">
-                <span>0.00 s</span>Approach
+          <div class="lab-grid">
+            <div class="lab-stage">
+              <div class="view-tag" aria-hidden="true">Scene camera</div>
+              <video
+                id="hero-video"
+                controls
+                muted
+                playsinline
+                preload="metadata"
+                width="192"
+                height="192"
+                poster="media/approach.webp"
+                aria-label="Recorded simulation of the three-step FP16 policy"
+                src="assets/three-step.mp4"
+              ></video>
+              <button
+                id="run-play"
+                type="button"
+                class="source-button lab-js"
+                aria-label="Play recording"
+              >
+                <svg
+                  class="icon play-icon"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="m8 5 12 7-12 7z" />
+                </svg>
+                <svg
+                  class="icon pause-icon"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 5v14m6-14v14" />
+                </svg>
+                <span id="run-play-text">Play</span>
               </button>
-              <button data-frame="2" aria-pressed="false">
-                <span>2.00 s</span>Reach
-              </button>
-              <button data-frame="3.7" aria-pressed="false">
-                <span>3.70 s</span>Place
-              </button>
+              <div class="scene-id" id="scene-id">Task 0 / State 0</div>
+            </div>
+            <div class="lab-deck">
+              <label class="scene-picker lab-js"
+                >Scene
+                <select id="scene-select">
+                  <option value="ramekin">
+                    Bowl between plate and ramekin
+                  </option>
+                  <option value="center">
+                    Bowl at the center of the table
+                  </option>
+                </select>
+              </label>
+              <p class="prompt">
+                <span>Task instruction</span
+                ><q id="scene-prompt"
+                  >Pick up the black bowl between the plate and the ramekin and
+                  place it on the plate.</q
+                >
+              </p>
+              <div
+                class="rollout-controls lab-js"
+                role="group"
+                aria-label="Recorded policy"
+              >
+                <button data-run="variant" aria-pressed="true">
+                  <strong>Three-step FP16</strong
+                  ><small id="variant-summary">76 steps · goal reached</small>
+                </button>
+                <button data-run="released" aria-pressed="false">
+                  <strong>Released</strong
+                  ><small id="released-summary">280 steps · timed out</small>
+                </button>
+              </div>
+              <div class="telemetry lab-js">
+                <div class="playhead-data">
+                  <span
+                    >Control step <strong id="run-step">000 / 076</strong></span
+                  >
+                  <span
+                    >Gripper command
+                    <strong id="run-gripper">Open</strong></span
+                  >
+                </div>
+                <div id="run-trace" class="run-trace" aria-hidden="true"></div>
+                <div class="transport">
+                  <label class="scrub-label" for="run-time"
+                    >Scrub recording</label
+                  ><input
+                    type="range"
+                    id="run-time"
+                    min="0"
+                    max="76"
+                    step="1"
+                    value="0"
+                  />
+                </div>
+              </div>
+              <p id="run-status" role="status" class="lab-js">
+                Three-step FP16 · goal reached after 76 actions.
+              </p>
+              <noscript
+                ><p>
+                  Three-step FP16 reached the goal in 76 actions. Compare both
+                  recordings below.
+                </p></noscript
+              >
             </div>
           </div>
           <figcaption>
-            Three-step FP16 eager places the bowl on the plate in 76 actions.
+            Both runs start from the same LIBERO-Spatial scene. The timeline
+            shows the recorded gripper commands and follows simulation steps.
+            <a href="#recordings">See the original matched pair</a>
           </figcaption>
         </figure>
       </section>
@@ -267,6 +335,57 @@
             ms respectively across 20 episodes per configuration.
           </p></noscript
         >
+        <section
+          id="timing-lab"
+          class="timing-lab js"
+          aria-labelledby="timing-lab-title"
+        >
+          <div class="timing-intro">
+            <h3 id="timing-lab-title">Change the sampler</h3>
+            <p>
+              Mix the three settings to inspect the measured result for that
+              configuration. The comparison uses isolated Tesla T4 timings.
+            </p>
+          </div>
+          <div class="timing-controls">
+            <label
+              >Precision
+              <select id="lab-precision">
+                <option value="FP16">Float16</option>
+                <option value="BF16">Bfloat16</option>
+              </select></label
+            >
+            <label
+              >Euler updates
+              <select id="lab-steps">
+                <option>1</option>
+                <option>2</option>
+                <option selected>3</option>
+                <option>10</option>
+              </select></label
+            >
+            <label
+              >Execution
+              <select id="lab-execution">
+                <option value="graph">CUDA graph</option>
+                <option value="eager">Eager</option>
+              </select></label
+            >
+          </div>
+          <div class="lab-result">
+            <p id="lab-value" aria-live="polite">111.9 ms · 7.1× faster</p>
+            <div class="latency-meter" aria-hidden="true">
+              <i id="lab-bar"></i>
+            </div>
+            <div class="meter-labels">
+              <span>0 ms</span><span>Released · 789.2 ms</span>
+            </div>
+            <p id="lab-qualification">
+              The 500-pair success comparison used three-step FP16 eager
+              execution.
+            </p>
+          </div>
+        </section>
         <details class="js">
           <summary>Inspect all 16 isolated timing configurations</summary>
           <div id="timing-table"></div>
