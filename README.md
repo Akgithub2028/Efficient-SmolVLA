@@ -2,7 +2,7 @@
 
 **A paired study of inference latency and closed-loop success on LIBERO-Spatial**
 
-[Research report](paper/main.pdf) · [Supplement](docs/report_appendix.pdf) · [Kaggle notebook](notebooks/kaggle_efficient_vla.ipynb) · [Literature matrix](deliverables/literature_matrix.xlsx)
+[Interactive project website](https://akgithub2028.github.io/Efficient-SmolVLA/) · [Research report](paper/main.pdf) · [Supplement](docs/report_appendix.pdf) · [Kaggle notebook](notebooks/kaggle_efficient_vla.ipynb) · [Literature matrix](deliverables/literature_matrix.xlsx)
 
 How much can we reduce the cost of a SmolVLA replan while preserving task success? This study profiles the released checkpoint on a Tesla T4, then evaluates cheaper inference and reduced observation refresh on matched simulation episodes. All variants use the same pretrained weights. [SmolVLA paper](https://arxiv.org/abs/2506.01844)
 
