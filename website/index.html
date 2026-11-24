@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>The cost of a replan · Efficient SmolVLA</title>
+    <meta
+      name="description"
+      content="An interactive study of SmolVLA replanning on a Tesla T4, with paired LIBERO-Spatial simulation results, GPU profiles and recorded rollouts."
+    />
+    <link rel="icon" href="mark.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="fonts/display.ttf"
+      as="font"
+      type="font/ttf"
+      crossorigin
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="data.js"></script>
+    <script defer src="site.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#study">Skip to study</a>
+    <header>
+      <a href="#study" class="brand"
+        ><img src="mark.svg" alt="" width="32" height="32" />Efficient
+        SmolVLA</a
+      >
+      <nav aria-label="Study sections">
+        <a href="#mechanism">Mechanism</a><a href="#evidence">Evidence</a
+        ><a href="#recordings">Rollouts</a><a href="#resources">Resources</a>
+      </nav>
+    </header>
+    <main id="study">
+      <section class="opening wrap">
+        <div class="lead">
+          <h1>The cost <br />of a <em>replan.</em></h1>
+          <p>
+            When a robot sees the world again, how much work does its next move
+            really need?
+          </p>
+          <p class="context">
+            A paired study of SmolVLA on a Tesla T4, using ten simulated
+            manipulation tasks from LIBERO-Spatial.
+          </p>
+          <div class="actions">
+            <a class="button" href="#evidence">Explore the evidence</a
+            ><a class="textlink" href="assets/report.pdf"
+              >Research paper <small>PDF</small></a
+            >
+          </div>
+        </div>
+        <figure class="plate">
+          <div class="platehead">
+            <span>Recorded simulation</span><span>Task 00 / State 00</span>
+          </div>
+          <img
+            class="strip"
+            width="582"
+            height="192"
+            src="media/hero.webp"
+            alt="Three frames show the gripper approaching a bowl and carrying it over the plate."
+          />
+          <div class="times">
+            <span>0.00 s</span><span>2.00 s</span><span>3.70 s</span>
+          </div>
+          <div class="platebottom">
+            <span class="sample" aria-hidden="true"><i></i><i></i><i></i></span>
+            <figcaption>
+              Three Euler steps per replan.<br />One fresh observation per move.
+            </figcaption>
+          </div>
+        </figure>
+      </section>
+      <div class="byline wrap">
+        <span>Aayaann Kausar <b>·</b> 2026</span
+        ><a href="https://github.com/Akgithub2028/Efficient-SmolVLA"
+          >Project repository</a
+        >
+      </div>
+      <section class="band" id="mechanism">
+        <div class="wrap section">
+          <div class="intro">
+            <h2>Inside one replan</h2>
+            <p>
+              A vision-language-action policy turns images, an instruction and
+              robot state into movement. SmolVLA predicts a whole chunk,
+              executes its first action, then looks again.
+            </p>
+          </div>
+          <figure class="pipeline">
+            <div class="pipeblock">
+              <strong>Observe</strong><span>Two views + language + state</span>
+              <div class="camera" aria-hidden="true">
+                <img src="media/baseline.webp" alt="" /><i></i>
+              </div>
+            </div>
+            <div class="pipeblock">
+              <strong>Encode once</strong
+              ><span>Cache observation features</span>
+              <div class="cache" aria-hidden="true"><i></i><i></i><i></i></div>
+            </div>
+            <div class="pipeblock">
+              <strong>Refine a plan</strong
+              ><span id="step-label">10 Euler updates from noise</span>
+              <div id="steps" class="steps" aria-hidden="true">
+                ▥ ▥ ▥ ▥ ▥ ▥ ▥ ▥ ▥ ▥
+              </div>
+            </div>
+            <div class="pipeblock">
+              <strong>Act once</strong><span>Use action 1 of 50</span>
+              <div class="chunk" aria-hidden="true"></div>
+            </div>
+            <figcaption>
+              Each Euler update reuses the same observation cache. Reducing
+              updates makes each plan cheaper while preserving visual feedback
+              at the next move.
+            </figcaption>
+          </figure>
+          <div
+            class="control js"
+            role="group"
+            aria-label="Illustrated Euler step count"
+          >
+            <span>Illustrate the flow loop</span
+            ><button data-steps="10" aria-pressed="true">10 steps</button
+            ><button data-steps="3" aria-pressed="false">3 steps</button
+            ><button data-steps="1" aria-pressed="false">1 step</button>
+          </div>
+        </div>
+      </section>
+      <section id="evidence" class="wrap section">
+        <div class="intro">
+          <h2>Time per replan</h2>
+          <p>
+            On the T4, half precision speeds up the encoder. Fewer flow steps
+            reduce repeated work, and replaying a CUDA graph cuts kernel launch
+            overhead.
+          </p>
+        </div>
+        <div class="control js" role="group" aria-label="Latency measurement">
+          <button data-timing="isolated" aria-pressed="true">
+            Isolated GPU</button
+          ><button data-timing="loop" aria-pressed="false">
+            Inside the loop
+          </button>
+        </div>
+        <figure class="chart">
+          <div class="axis">
+            <span>Median policy latency</span
+            ><span>Milliseconds · lower is faster</span>
+          </div>
+          <div id="bars">
+            <div class="row">
+              <span>Released · 10 steps</span><i style="--w: 87.7%"></i
+              ><b>789.2 ms</b>
+            </div>
+            <div class="row">
+              <span>FP16 · 3 steps, eager</span><i style="--w: 27.2%"></i
+              ><b>245.2 ms</b>
+            </div>
+            <div class="row">
+              <span>FP16 · 3 steps, CUDA graph</span><i style="--w: 12.4%"></i
+              ><b>111.9 ms</b>
+            </div>
+          </div>
+          <figcaption id="timing-note" aria-live="polite">
+            Isolated GPU profiling measures 60 warmed batch-one calls per
+            configuration.
+          </figcaption>
+        </figure>
+        <noscript
+          ><p>
+            Inside the loop, median policy replans took 862.1, 274.6 and 114.0
+            ms respectively across 20 episodes per configuration.
+          </p></noscript
+        >
+        <details>
+          <summary>What did the CUDA graph check establish?</summary>
+          <p>
+            In the 20 matched timing episodes, eager and graph execution agreed
+            on the first action and final outcome in every pair. Full
+            trajectories matched in ten pairs, also seen in an eager repeat. The
+            larger success study below used eager execution.
+          </p>
+        </details>
+      </section>
+      <section class="paired band">
+        <div class="wrap section">
+          <div class="intro">
+            <h2>Did the task succeed?</h2>
+            <p>
+              Each pair starts from the same task and initial state. Counting
+              which outcomes change shows what an aggregate success rate hides.
+            </p>
+          </div>
+          <label class="js chooser"
+            >Compare eager runs
+            <select id="cohort"></select
+          ></label>
+          <div class="pairgrid">
+            <div>
+              <div id="difference" class="big">+3.0 <small>pp</small></div>
+              <p id="rates">75.4% released · 78.4% three-step FP16</p>
+              <p id="interval">Paired 95% interval: −0.6 to +6.6 points.</p>
+            </div>
+            <figure>
+              <div id="mosaic" class="mosaic"></div>
+              <figcaption id="pair-caption">
+                500 matched episodes. Both policies succeeded in 342, only the
+                released policy in 35, only the variant in 50, and neither in
+                73.
+              </figcaption>
+            </figure>
+          </div>
+          <p id="decision" aria-live="polite">
+            The lower confidence bound clears the prespecified −5-point
+            non-inferiority margin. The pooled three-step cohort includes 300
+            states added after the interim analysis.
+          </p>
+          <details class="js">
+            <summary>Inspect outcomes across the ten tasks</summary>
+            <div id="tasks"></div>
+          </details>
+          <details>
+            <summary>How far do these results generalize?</summary>
+            <p>
+              The study covers one released checkpoint, one simulated task suite
+              and one GPU model. The intervals describe paired episode outcomes.
+              Across-task uncertainty is larger: the one-step confirmation has a
+              task-cluster bootstrap interval of −1.0 to +12.7 percentage
+              points.
+            </p>
+          </details>
+        </div>
+      </section>
+      <section class="wrap section" id="recordings">
+        <div class="intro">
+          <h2>One pair, in motion</h2>
+          <p>
+            Pick up the black bowl between the plate and the ramekin and place
+            it on the plate. These two recorded simulations start from exactly
+            the same scene.
+          </p>
+        </div>
+        <div class="videos">
+          <figure>
+            <video
+              controls
+              playsinline
+              preload="none"
+              width="192"
+              height="192"
+              poster="media/baseline.webp"
+              aria-label="Released policy simulated rollout"
+              src="assets/released.mp4"
+            ></video>
+            <figcaption>
+              <strong>Released policy</strong>Reached the limit at 280 actions.
+            </figcaption>
+          </figure>
+          <figure>
+            <video
+              controls
+              playsinline
+              preload="none"
+              width="192"
+              height="192"
+              poster="media/three-step.webp"
+              aria-label="Three-step FP16 eager simulated rollout"
+              src="assets/three-step.mp4"
+            ></video>
+            <figcaption>
+              <strong>Three-step FP16 eager</strong>Placed the bowl on the plate
+              in 76 actions.
+            </figcaption>
+          </figure>
+        </div>
+        <p class="note">
+          Task 0 · Initial state 0 · Seed 1000. Playback shows 20 frames per
+          second. Clip duration reflects the number of simulated actions and
+          cannot measure inference latency.
+        </p>
+      </section>
+      <section class="band" id="resources">
+        <div class="wrap section">
+          <h2>Follow the evidence</h2>
+          <div class="links">
+            <a href="assets/report.pdf"
+              >Research report <small>PDF · 4 pages</small></a
+            ><a href="assets/supplement.pdf"
+              >Technical supplement <small>PDF</small></a
+            >
+            <a
+              href="https://github.com/Akgithub2028/Efficient-SmolVLA/tree/main/results/t4"
+              >Measurements and traces <small>CSV, JSON, NPY</small></a
+            ><a
+              href="https://github.com/Akgithub2028/Efficient-SmolVLA#reproduce-the-results"
+              >Reproduce the study <small>Code and notebook</small></a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <span>Efficient SmolVLA · Aayaann Kausar</span
+      ><a href="#study">Back to top</a>
+    </footer>
+  </body>
+</html>
