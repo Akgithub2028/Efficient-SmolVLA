@@ -63,45 +63,6 @@ get("run-plan").addEventListener("click", () => {
 });
 
 const hero = get("hero-video");
-const frameButtons = [...document.querySelectorAll("[data-frame]")];
-let pendingFrame;
-function markFrame(time) {
-  const active = frameButtons.findLast(
-    (button) => Number(button.dataset.frame) <= time + 0.05,
-  );
-  for (const button of frameButtons)
-    button.setAttribute("aria-pressed", String(button === active));
-}
-
-for (const button of frameButtons) {
-  button.addEventListener("click", () => {
-    const time = Number(button.dataset.frame);
-    hero.pause();
-    if (hero.readyState > 0) {
-      hero.currentTime = time;
-    } else {
-      if (pendingFrame === undefined) {
-        hero.preload = "metadata";
-        hero.load();
-      }
-      pendingFrame = time;
-    }
-    markFrame(time);
-  });
-}
-hero.addEventListener("loadedmetadata", () => {
-  if (pendingFrame !== undefined) {
-    hero.currentTime = pendingFrame;
-    pendingFrame = undefined;
-  }
-});
-hero.addEventListener("error", () => {
-  pendingFrame = undefined;
-  markFrame(0);
-});
-hero.addEventListener("timeupdate", () => markFrame(hero.currentTime));
-hero.addEventListener("seeking", () => markFrame(hero.currentTime));
-
 const recordings = [...document.querySelectorAll("[data-trace]")];
 const clips = [hero, ...recordings];
 for (const video of clips) {
